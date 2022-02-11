@@ -24,6 +24,7 @@ public class Enemy : Swipeable
 
     private void Start() {
         StartArrowPhase();
+        GameManager.Instance.OnUpdateSpeedScale += ScaleDescentSpeed;
     }
 
     private void Update() {
@@ -36,27 +37,5 @@ public class Enemy : Swipeable
         speedScale = scale;
         descentSpeed = defaultDescentSpeed * speedScale;
     }
-
-    public override Direction GetTargetDirection() {
-        if (!arrowPhaseDone) return Direction.None;
-
-        switch (arrowRotation) {
-            case 0:
-                return Direction.Any;
-            case 1:
-                return Direction.Up;
-            case 2:
-                return Direction.Left;
-            case 3:
-                return Direction.Down;
-            case 4:
-                return Direction.Right;
-            default:
-                return Direction.None;
-        }
-    }
-
-    //public 
-
 
 }

@@ -2,53 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Spawner : Singleton<Spawner> 
+public class SpawnerManager : Singleton<SpawnerManager>
 {
-    private bool isSpawning = false;
-    private GameObject[] enemiesToSpawn;
-    private GameObject[] powerUpsToSpawn;
-    private SoundManager soundManager;
+    public float spawnBaseSpeed = 4.0f;
 
+    [Header("Set up")]
+    public Transform spawnLocationWalk;
+    public Transform spawnLocationFly;
+    public Swipeable[] enemiesToSpawn; // Normal
+    public Swipeable[] enemiesToSpawnInRhythm;
+
+    private bool isSpawning = false;
     private RhythmSet _rhythmSet;
     private IEnumerator coroutine_spawner;
 
-    public Transform spawnLocationWalk;
-    public Transform spawnLocationFly;
-    public float spawnBaseSpeed = 4.0f;
-    public int enemiesBeforePowerUp = 6;
-    public float powerUpChance = 20.0f;
+    public delegate void SpawnEvent(Swipeable swipeable);
+    public event SpawnEvent OnSpawn;
 
-    private void Start() {
-        soundManager = GetComponent<SoundManager>();
+
+    private void Awake() {
+        GameManager.Instance.OnGameOver += StopSpawner;
+        GameManager.Instance.OnGameWin += StopSpawner;
     }
 
-    public void SetSpawns(GameObject[] eneSpawns, List<GameObject> powSpawns = null) {
-        enemiesToSpawn = eneSpawns;
-        if (powSpawns != null) {
-            powerUpsToSpawn = powSpawns.ToArray();
-        }
-    }
-
-    public void StartSpawner(List<GameObject> swipeableEntities) {
+    public void StartSpawner() {
         isSpawning = true;
-        coroutine_spawner = SpawnEnemy(swipeableEntities);
+        coroutine_spawner = SpawnEnemy();
         StartCoroutine(coroutine_spawner);
     }
 
-    public void StartSpawnerRhythm(List<GameObject> swipeableEntities, RhythmSet set) {
+    public void StartSpawnerRhythm(RhythmSet set) {
+        Debug.Log("Spawner Started");
         isSpawning = true;
         _rhythmSet = set;
-        coroutine_spawner = SpawnRhythm(swipeableEntities);
+        coroutine_spawner = SpawnRhythm();     
         StartCoroutine(coroutine_spawner);
     }
 
-    public IEnumerator SpawnEnemy(List<GameObject> enemylistToAdd) {
+    public IEnumerator SpawnEnemy() {
         int numberOfSpawns = 0;
         while (isSpawning) {
-            
+
             int length = enemiesToSpawn.Length;
             int ranEnem = Random.Range(0, length);
-            GameObject spawned = Instantiate(enemiesToSpawn[ranEnem]);
+            Swipeable spawned = Instantiate(enemiesToSpawn[ranEnem]);
             Enemy enemy = spawned.GetComponent<Enemy>();
 
             switch (enemy.enemyType) {
@@ -61,43 +58,31 @@ public class Spawner : Singleton<Spawner>
                     break;
             }
             numberOfSpawns++;
+            OnSpawn?.Invoke(spawned);
 
-
-            if (powerUpsToSpawn.Length > 0 && numberOfSpawns > enemiesBeforePowerUp
-                && enemy.enemyType != EnemyType.TowerObstacle) {
-                float ranPowChance = Random.Range(0, 100.0f);
-                if (powerUpChance > ranPowChance) {
-                    int ranPow = Random.Range(0, powerUpsToSpawn.Length);
-                    GameObject spawnedPow = Instantiate(powerUpsToSpawn[ranPow]);
-                    spawnedPow.transform.parent = spawned.transform;
-                    enemy.powerUp = spawnedPow.GetComponent<PowerUp>().powerType;
-                    numberOfSpawns = 0;
-                }
-            }
-      
-            enemylistToAdd.Add(spawned);
             float randTime = Random.Range(-3.0f, 1.0f);
             yield return new WaitForSeconds(spawnBaseSpeed + randTime);
         }
     }
 
-    public IEnumerator SpawnRhythm(List<GameObject> enemylistToAdd) {
+    public IEnumerator SpawnRhythm() {
         int numberOfSpawns = 0;
         bool hasSpawned = false;
-      
+        BeatManager.startBeating = true;
+
         while (isSpawning) {
 
             int beat = ((BeatManager.beatCount - 1) % 8);
             int pat = Random.Range(0, _rhythmSet.patterns.Length);
 
-            if (BeatManager.beat && _rhythmSet.patterns[pat].beats[beat] > 0 && 
-                !hasSpawned && BeatManager.beatCount > 0 && 
+            if (BeatManager.beat && _rhythmSet.patterns[pat].beats[beat] > 0 &&
+                !hasSpawned && BeatManager.beatCount > 0 &&
                 BeatManager.beatMeasureCount % 2 == 0) {
 
                 hasSpawned = true;
                 int length = enemiesToSpawn.Length;
                 int ranEnem = Random.Range(0, length);
-                GameObject spawned = Instantiate(enemiesToSpawn[ranEnem]);
+                Swipeable spawned = Instantiate(enemiesToSpawn[ranEnem]);
                 Enemy enemy = spawned.GetComponent<Enemy>();
 
                 switch (enemy.enemyType) {
@@ -110,10 +95,11 @@ public class Spawner : Singleton<Spawner>
                         break;
                 }
 
-                soundManager.PlaySound(_rhythmSet.tapBeat, 1);
+                SoundManager.Instance.PlaySound(_rhythmSet.tapBeat, 1);
 
                 numberOfSpawns++;
-                enemylistToAdd.Add(spawned);             
+                OnSpawn?.Invoke(spawned);
+
             } else {
                 hasSpawned = false;
             }
@@ -121,21 +107,40 @@ public class Spawner : Singleton<Spawner>
             if (BeatManager.beat && BeatManager.beatCount > 0 &&
                 BeatManager.beatCount % 8 == 0 &&
                 BeatManager.beatMeasureCount > 0) {
-                soundManager.PlaySound(_rhythmSet.tabEndMeasure, 1);
+                SoundManager.Instance.PlaySound(_rhythmSet.tabEndMeasure, 1);
             }
 
             yield return new WaitForSeconds(0.00001f);
         }
-
+        Debug.Log("Spawner Stopped");
         yield return null;
     }
 
+    private void Spawn() {
+        Debug.Log("Spawned");
+
+        int length = enemiesToSpawn.Length;
+        int ranEnem = Random.Range(0, length);
+        Swipeable spawned = Instantiate(enemiesToSpawn[ranEnem]);
+        Enemy enemy = spawned.GetComponent<Enemy>();
+
+        switch (enemy.enemyType) {
+            case (EnemyType.TowerObstacle):
+            case (EnemyType.Walking):
+                spawned.transform.position = spawnLocationWalk.position;
+                break;
+            case (EnemyType.Flying):
+                spawned.transform.position = spawnLocationFly.position;
+                break;
+        }
+    }
 
     public void SetSpawnerSpeed(float speed) {
         spawnBaseSpeed = speed;
     }
 
-    public void StopSpawner() {
+    private void StopSpawner() {
+        Debug.Log("Spawner Stopped");
         isSpawning = false;
         StopCoroutine(coroutine_spawner);
     }

@@ -16,7 +16,7 @@ MonoBehaviour:
   arrowSprite: {fileID: 21300000, guid: 235be039b94a4df4eb0a140575378e9e, type: 3}
   dotSprite: {fileID: 21300000, guid: d0a449c29a4b8ff4a93a428e1b1d22ea, type: 3}
   particle: {fileID: 7757863661452112701, guid: 428bf67b3408bba45ac46fecb8c242a4, type: 3}
-  colorIsLiteral: {r: 0, g: 1, b: 0.028357267, a: 1}
+  colorIsLiteral: {r: 0.13477361, g: 1, b: 0, a: 1}
   colorIsOpposite: {r: 1, g: 0, b: 0, a: 1}
   colorIsCorrect: {r: 1, g: 0.9780377, b: 0, a: 1}
   colorIsWrong: {r: 0.33333334, g: 0, b: 0, a: 1}

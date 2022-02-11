@@ -4,15 +4,13 @@ using UnityEngine;
 
 public class MainMenu : MonoBehaviour 
 {
-    public GameManager gameManager;
-
     private void Start() 
 	{
         
     }
 
     public void StartGame() {
-        gameManager.StartGame();
+        GameManager.Instance.StartGame();
     }
 
 

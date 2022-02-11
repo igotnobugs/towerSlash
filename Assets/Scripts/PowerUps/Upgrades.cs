@@ -34,7 +34,7 @@ public class Upgrades : MonoBehaviour
             costText.text = "On";
             toggledImage.enabled = true;
             toggledOn = true;
-            gameManager.BuyUpgrade(0, type);
+            //GameManager.Instance.BuyUpgrade(0, type);
 
             foreach (GameObject up in unlockUpgrades) {
                 up.SetActive(true);
@@ -56,7 +56,7 @@ public class Upgrades : MonoBehaviour
             return;
         }
 
-        if (!gameManager.BuyUpgrade(cost, type)) return;
+        //if (!GameManager.Instance.BuyUpgrade(cost, type)) return;
 
         foreach (GameObject up in unlockUpgrades) {
             up.SetActive(true);
@@ -71,12 +71,12 @@ public class Upgrades : MonoBehaviour
         if (toggledOn) {
             costText.text = "Off";
             toggledImage.enabled = false;
-            gameManager.SetUpgrade(type, false);
+            //GameManager.Instance.SetUpgrade(type, false);
             toggledOn = false;
         } else {
             costText.text = "On";
             toggledImage.enabled = true;
-            gameManager.SetUpgrade(type, true);
+            //GameManager.Instance.SetUpgrade(type, true);
             toggledOn = true;
         }        
     }

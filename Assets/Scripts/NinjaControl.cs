@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,74 +7,63 @@ public class NinjaControl : MonoBehaviour
 {
     public float attackRange = 1.5f;
 
-    private List<GameObject> targets = new List<GameObject>();
-    private GameObject currentTarget;
+    private List<Swipeable> targets = new List<Swipeable>();
+    //private Swipeable currentTarget;
 
-    private int successfulAttacks = 0;
     private Animator animator;
-    private bool isAttacking = false;
+    //private bool isAttacking = false;
     private float previousPosition;
-    private GameManager gameManager;
 
     public bool isRhythmMode = false;
+    public bool hasAttacked = false;
 
-    private void Start()
-	{
+    private void Awake() {
         animator = GetComponent<Animator>();
-        gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
     }
 
-    private void Update() 
-	{
-        if (isAttacking) return;
-
-        if (currentTarget == null)
-            currentTarget = GetTarget();
-
-        if (successfulAttacks <= 0) return;
-
-        if (currentTarget.transform.position.y < transform.position.y + attackRange) {
-            Enemy enemy = currentTarget.GetComponent<Enemy>();
-
-            if (isRhythmMode) {
-                JustAttack(enemy);
-            }
-            else {
-                Attack(enemy);
-            }
-        }
-    }
 
     public void PlayAnimation(string anim) {
         animator.Play(anim);
     }
 
-    private GameObject GetTarget() {
-        if (targets.Count <= 0) return null;
-        if (targets[0] == null) 
-            targets.RemoveAll(item => item == null);
-        return targets[0];
-    }
 
-    public void AddTarget(GameObject targetToAdd) {
-        successfulAttacks++;
+    public void AddTarget(Swipeable targetToAdd) {
+        targetToAdd.InRange += AttackTarget;
+        
         targets.Add(targetToAdd);
     }
 
+    private void AttackTarget(Swipeable swipeable) {
+        swipeable.InRange -= AttackTarget;
+        //isAttacking = true;
+        //
+        hasAttacked = true;
+
+        animator.SetInteger("targets", animator.GetInteger("targets") + 1);
+        if (animator.GetInteger("targets") <= 1) {
+            animator.Play("SlashAnimation");
+        } else {
+
+        }
+
+        targets.RemoveAt(0);
+
+        Destroy(swipeable.gameObject);
+        //isAttacking = false;
+    }
+
     private void JustAttack(Enemy enemy) {
-        isAttacking = true;
-        successfulAttacks--;
+        //isAttacking = true;
         animator.Play("SlashAnimation");
         targets.RemoveAt(0);
-        Destroy(currentTarget);
-        currentTarget = null;
-        isAttacking = false;
+        Destroy(enemy.gameObject);
+        //isAttacking = false;
     }
 
     private void Attack(Enemy enemy) {
-        isAttacking = true;
+        //isAttacking = true;
 
-        successfulAttacks--;
+        //successfulAttacks--;
 
         Hashtable hashTable = new Hashtable {
             { "time", 0.5f },
@@ -85,6 +75,7 @@ public class NinjaControl : MonoBehaviour
         switch (enemy.enemyType) {
             case EnemyType.Walking:
                 animator.Play("SlashAnimation");
+                Destroy(enemy.gameObject);
                 break;
             case EnemyType.Flying:
                 Vector3 targetPosition = enemy.transform.position;
@@ -94,6 +85,7 @@ public class NinjaControl : MonoBehaviour
                 hashTable.Add("z", transform.position.z);
 
                 animator.Play("SpinAnimation");
+                Destroy(enemy.gameObject);
                 break;
             case EnemyType.TowerObstacle:
                 hashTable.Add("x", transform.position.x - 5.0f);
@@ -123,17 +115,20 @@ public class NinjaControl : MonoBehaviour
     }
 
     private void ReadyForAttack() {
-        Enemy enemy = currentTarget.GetComponent<Enemy>();
-        gameManager.ActivatePowerUp(enemy.powerUp);
+        //Enemy enemy = currentTarget.GetComponent<Enemy>();
+        //GameManager.Instance.ActivatePowerUp(enemy.powerUp);
 
-        if (enemy.enemyType != EnemyType.TowerObstacle)
-            Destroy(currentTarget);
+        //if (enemy.enemyType != EnemyType.TowerObstacle)
+        //    Destroy(currentTarget.gameObject);
 
-        currentTarget = null;
-        isAttacking = false;
+        //currentTarget = null;
+        //isAttacking = false;
     }
 
-    public bool IsAttacking() {
-        return isAttacking;
+    public void Reset() {
+        if (hasAttacked) {
+            animator.SetInteger("targets", 0);
+            hasAttacked = false;
+        }
     }
 }

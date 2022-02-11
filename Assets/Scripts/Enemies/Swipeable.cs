@@ -12,9 +12,11 @@ public class Swipeable : MonoBehaviour
     public ArrowDesign arrowDesign = null;
     public ArrowType arrowType = ArrowType.Literal;
     public float timeToAppear = 0.0f;
-    public float rangeToInteract = 3.0f;   
+    //public float rangeToInteract = 3.0f;   
     public float rotateSpeed = 0.5f;
 
+    public bool isTargeted = false;
+    public bool isFailed = false;
     protected bool arrowPhaseDone = false;
     protected int arrowRotation = 0;
 
@@ -24,8 +26,23 @@ public class Swipeable : MonoBehaviour
     private ParticleSystem colorParticle = null;
 
     // 1 is up, counter clockwise, to 4
-    
-   
+    public delegate void SwipeableEvent(Swipeable swipeable);
+    public event SwipeableEvent OnPassedThreshold;
+    public event SwipeableEvent InRange;
+
+    public float yThreshold = 0.0f;
+    public float yInRange = 0.0f;
+
+    public void LateUpdate() {
+        if (transform.position.y < yInRange) {
+            InRange?.Invoke(this);
+        }
+
+        if (transform.position.y < yThreshold) {
+            OnPassedThreshold?.Invoke(this);
+        }
+    }
+
     protected void StartArrowPhase() {
         player = GameObject.FindGameObjectWithTag("Player");
 
@@ -64,14 +81,15 @@ public class Swipeable : MonoBehaviour
         arrowSprite.sprite = arrowDesign.dotSprite;
         ChangeColor(arrowDesign.colorIsLiteral);
 
-        bool isInRange = false;
+        /*bool isInRange = false;
         while (!isInRange) {
             if (player.transform.position.y + rangeToInteract < transform.position.y) {
                 yield return new WaitForSeconds(0.01f);
             } else {
                 isInRange = true;
+                InRanged?.Invoke(this);
             }
-        }
+        }*/
 
         MarkInteractable(arrowDesign.colorIsLiteral);
         arrowPhaseDone = true;
@@ -89,16 +107,6 @@ public class Swipeable : MonoBehaviour
 
         arrowRotation = Random.Range(1, 5);
         arrow.transform.Rotate(0, 0, 90 * arrowRotation);
-
-        bool isInRange = false;
-        while (!isInRange) {
-            if (player.transform.position.y + rangeToInteract < transform.position.y) {
-                yield return new WaitForSeconds(0.01f);
-            }
-            else {
-                isInRange = true;
-            }
-        }
 
         MarkInteractable(arrowDesign.colorIsLiteral);
         arrowPhaseDone = true;
@@ -118,16 +126,6 @@ public class Swipeable : MonoBehaviour
         arrowRotation += 2;
         if (arrowRotation > 4) arrowRotation -= 4;
 
-        bool isInRange = false;
-        while (!isInRange) {
-            if (player.transform.position.y + rangeToInteract < transform.position.y) {
-                yield return new WaitForSeconds(0.01f);
-            }
-            else {
-                isInRange = true;
-            }
-        }
-
         MarkInteractable(arrowDesign.colorIsOpposite);
         arrowPhaseDone = true;
 
@@ -143,7 +141,7 @@ public class Swipeable : MonoBehaviour
         arrowRotation = Random.Range(1, 5);
         arrow.transform.Rotate(0, 0, 90 * arrowRotation);
 
-        bool isInRange = false;
+        /*bool isInRange = false;
         bool isCoroutineStarted = false;
         while (!isInRange) {
             if (player.transform.position.y + rangeToInteract < transform.position.y) {
@@ -159,7 +157,7 @@ public class Swipeable : MonoBehaviour
                 StopCoroutine(coroutine_RotateSprite);
                 isInRange = true;
             }
-        }
+        }*/
 
         MarkInteractable(arrowDesign.colorIsLiteral);
 
@@ -235,7 +233,13 @@ public class Swipeable : MonoBehaviour
     }
 
     public void MarkAsSuccess() {
+        isTargeted = true;
         ChangeColor(arrowDesign.colorIsCorrect);
+    }
+
+    public void MarkAsFailed() {
+        isFailed = true;
+        ChangeColor(arrowDesign.colorIsWrong);
     }
 
     private void MarkInteractable(Color color) {

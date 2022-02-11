@@ -1,16 +1,51 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
 
 public enum Direction { Any, Left, Right, Up, Down, Tap, Unknown, None };
 
-public class SwipeTracker : MonoBehaviour
+public class SwipeTracker : Singleton<SwipeTracker> 
 {
     public float minSwipeLength = 0.1f;
     private bool isTrackingSwipe = false;
     
     private IEnumerator coroutine_GetSwipes;
     private Direction trackedDirection;
-  
+
+    private InputActions inputAction;
+
+    public delegate void SwipeEvent();
+    public event SwipeEvent OnTap;
+    //public event SwipeEvent OnDeactivating;
+
+    private Vector2 initialTapPosition;
+
+    private void Awake() {
+        inputAction = new InputActions();
+    }
+
+    private void Start() {
+        inputAction.Mouse.Tap.started += ctx => MouseStarted(ctx);
+        inputAction.Mouse.Tap.performed += ctx => MouseTap(ctx);
+        //inputAction.Mouse.MousePositionDelta.performed
+        inputAction.Enable();
+    }
+
+    private void MouseStarted(InputAction.CallbackContext ctx) {
+        //OnTap?.Invoke();
+        //Debug.Log("End");
+        // Debug.Log(inputAction.Mouse.curr);
+        //Debug.Log(inputAction.Mouse.MousePosition.ReadValue<Vector2>());
+    }
+
+    private void MouseTap(InputAction.CallbackContext ctx) {
+        OnTap?.Invoke();
+        //Debug.Log("Tapped");
+        //isMouseTap = true;
+    }
+
     public void StartTracking() {
         if (isTrackingSwipe) return;
 
@@ -47,14 +82,14 @@ public class SwipeTracker : MonoBehaviour
         Vector2 deltaPos = touch.deltaPosition;
         float swipeLength = deltaPos.magnitude;
 
-        switch (touch.phase) {
-            case TouchPhase.Began:
-            case TouchPhase.Moved:
-                break;
-            case TouchPhase.Ended:
-                if (swipeLength < minSwipeLength) return Direction.Tap;
-                break;
-        }
+        //switch (touch.phase) {
+            //case TouchPhase.Began:
+            //case TouchPhase.Moved:
+            //    break;
+            //case TouchPhase.Ended:
+            //    if (swipeLength < minSwipeLength) return Direction.Tap;
+             //   break;
+        //}
 
         if (swipeLength < minSwipeLength) return Direction.None;
 

@@ -1,0 +1,52 @@
+{
+    "name": "InputActions",
+    "maps": [
+        {
+            "name": "Mouse",
+            "id": "ce9d06d0-0112-4af7-814d-90846a102cb1",
+            "actions": [
+                {
+                    "name": "Tap",
+                    "type": "Button",
+                    "id": "c1a412ff-95cc-4cda-8c42-5006815db4ce",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Tap"
+                },
+                {
+                    "name": "MousePosition",
+                    "type": "PassThrough",
+                    "id": "8b367e49-1c77-4ae1-90f7-2290cfcbca55",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "fd043dd3-b9b1-4fd2-9994-516578934d93",
+                    "path": "<Touchscreen>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tap",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7759d6c3-19ee-4703-8c0d-e4bbead41b81",
+                    "path": "<Touchscreen>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MousePosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

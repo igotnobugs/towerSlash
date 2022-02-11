@@ -47,6 +47,9 @@ public class BeatManager : Singleton<BeatManager>
     float timeToStopChecking;// = beatInterval + b; // 0.308 //stop checking 
 
 
+    public delegate void BeatEvent();
+    public event BeatEvent OnBeat;
+
     private void Start() 
 	{
         beatCount = 0;
@@ -100,8 +103,9 @@ public class BeatManager : Singleton<BeatManager>
                 StartCoroutine(coroutine_beatChecker);
             }
 
-            beatTimer -= beatInterval;       
+            beatTimer -= beatInterval;
             beat = true;
+            OnBeat?.Invoke();
             beatCount++;
 
             if (beatCount % beatPerMeasure == 0) {
